@@ -1,0 +1,32 @@
+articles
+	ID
+	press 
+	news_title 
+	naver_link
+	news_link
+	created_at
+	last_update
+	react
+		like
+		support
+		cỏngatulations
+		forward
+		suprised
+		sad
+	comments
+	share
+comments
+	ID
+	URL
+	created_at
+	content
+	like
+	dislike
+	reply
+	commentNo
+	parentCommentNo
+	articleId
+	
+https://apis.naver.com/commentBox/cbox/web_naver_list_jsonp.json?ticket=news&templateId=view_politics_m3&pool=cbox5&_wr&_callback=jQuery112409091524521375054_1627555259458&lang=ko&country=KR&objectId=news016%2C0001868010&categoryId=&pageSize=20&indexSize=10&groupId=&listType=OBJECT&pageType=more&parentCommentNo=2562463123&page=1&userType=&includeAllStatus=true&moreType=next&_=1627555259462
+https://apis.naver.com/commentBox/cbox/web_naver_list_jsonp.json?ticket=news&templateId=view_politics_m3&pool=cbox5&_wr&_callback=jQuery112409091524521375054_1627555259458&lang=ko&country=KR&objectId=news016%2C0001868010&categoryId=&pageSize=20&indexSize=10&groupId=&listType=OBJECT&pageType=more&parentCommentNo=2562463123&page=1&userType=&includeAllStatus=true&moreType=next&_=1627555259463
+https://cc.naver.com/cc?a=RPC.replyopen&r=&i=&m=0&ssc=news.art&p=9fc1b74f541b599b3609b0ab42d0952d&px=32&py=3569&sx=32&sy=571&u=https%3A%2F%2Fnews.naver.com%2Fmain%2Fread.naver%3Fmode%3DLSD%26mid%3Dsec%26sid1%3D100%26oid%3D016%26aid%3D0001868010%23&nt=1627555477095
