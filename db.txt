@@ -4,6 +4,7 @@ articles
 	news_title 
 	naver_link
 	news_link
+	
 	created_at
 	last_update
 	react

@@ -2,6 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 const fs = require("fs");
 const utf8 = require('utf8');
+const { crawlerNewsDetail } = require('./pup');
 
 const crawlerListArticles = async (keyword, page) => {
   const res = await axios.get(
@@ -40,38 +41,22 @@ const crawlerListArticles = async (keyword, page) => {
 };
 
 const crawlerPostDetail = async (naverLink) => {
-  let res = await axios.get(naverLink);
-  fs.writeFileSync("test.html", res.data)
-  let $ = cheerio.load(res.data);
-  let datetime = $(
-    "#main_content > div.article_header > div.article_info > div"
-  );
-  if (datetime.length === 0) {
-    console.log(res.data);
-  } else {
-    console.log(utf8.encode($($(datetime[0]).find("span")[0]).html()))
-    const created_at = textToData($($(datetime[0]).find("span")[0]).text());
-    console.log("Created_at: ", created_at);
-    const last_update = textToData($($(datetime[0]).find("span")[1]).text());
-    console.log("last_update: ", last_update);
-  }
+  await crawlerNewsDetail(naverLink)
+  // let res = await axios.get(naverLink);
+  // fs.writeFileSync("test.html", res.data)
+  // let $ = cheerio.load(res.data);
+  // let datetime = $(
+  //   "#main_content > div.article_header > div.article_info > div"
+  // );
+  // if (datetime.length === 0) {
+  //   console.log(res.data);
+  // } else {
+  //   console.log(utf8.encode($($(datetime[0]).find("span")[0]).html()))
+  //   const created_at = textToData($($(datetime[0]).find("span")[0]).text());
+  //   console.log("Created_at: ", created_at);
+  //   const last_update = textToData($($(datetime[0]).find("span")[1]).text());
+  //   console.log("last_update: ", last_update);
+  // }
 };
 
-const textToData = (text) => {
-  if (!text) return;
-  let dateTime = "";
-  const arr = text.split(" ");
-  const date = arr[0].replace(/\./gi, "-").slice(0, -1);
-  const time = arr[2]
-    .split(":")
-    .map((e, i) => {
-      if (arr[1] == "오후" && i === 0) {
-        return parseInt(e) + 12;
-      }
-      return e;
-    })
-    .join(":");
-  dateTime = date + "T" + time;
-  return dateTime;
-};
 crawlerListArticles("출", 1);
