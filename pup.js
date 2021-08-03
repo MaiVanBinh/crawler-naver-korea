@@ -5,18 +5,15 @@ const sleep = (ms) => {
 
 exports.crawlerNewsDetail = async (url) => {
   const browser = await puppeteer.launch({
-    // headless: false,
+    // headless: false
   });
   const page = await browser.newPage();
+  await page.setDefaultNavigationTimeout(0);
+
   await page.goto(url);
-  await sleep(3);
-  let totalHeight = 0;
-  let distance = 100;
-  let scrollHeight = await page.evaluate(() => {
-    return document.body.scrollHeight;
-  });
+  await sleep(5);
   // while (totalHeight < scrollHeight) {
-  const reactCount = await page.evaluate(() => {
+  const data = await page.evaluate(() => {
     const textToDate = (text) => {
       if (!text) return;
       let dateTime = "";
@@ -38,17 +35,10 @@ exports.crawlerNewsDetail = async (url) => {
     const data = {};
     // get Reacts
     let items = document.querySelectorAll(
-      "#content > div.end_ct > div > div.end_top_util > div:nth-child(1) > div._reactionModule.u_likeit > a > span.u_likeit_text._count.num"
+      "span.u_likeit_text._count.num"
     );
     if (items.length > 0) {
       data.reacts = items[0].innerText;
-    } else {
-      items = document.querySelectorAll(
-        "#main_content > div.article_header > div.article_info > div > div.article_btns > div.article_btns_left > div > a > span.u_likeit_text._count.num"
-      );
-      if (items.length > 0) {
-        data.reacts = items[0].innerText;
-      }
     }
     // get date
     items = document.querySelectorAll(
@@ -196,14 +186,7 @@ exports.crawlerNewsDetail = async (url) => {
     }
     return data;
   });
-
-  console.log(reactCount);
-  // scrollHeight = await page.evaluate(() => {
-  //   window.scrollBy(0, 300);
-  //   return document.body.scrollHeight;
-  // });
-  // totalHeight += 300;
-  // }
-
+  
   browser.close();
+  return data;
 };

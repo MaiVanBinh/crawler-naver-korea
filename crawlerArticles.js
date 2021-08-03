@@ -1,29 +1,30 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const fs = require("fs");
-const utf8 = require('utf8');
-const { crawlerNewsDetail } = require('./pup');
+const utf8 = require("utf8");
+const { crawlerNewsDetail } = require("./pup");
 
 const crawlerListArticles = async (keyword, page) => {
-  const res = await axios.get(
-    `https://search.naver.com/search.naver?query=${encodeURI(
-      keyword
-    )}&where=news&ie=utf8&sm=nws_hty&start=${page * 10 + 1}`
-  );
+  const res = await axios.get(`https://search.naver.com/search.naver?query=${encodeURI(
+    keyword
+  )}&where=news&ie=utf8&sm=nws_hty&start=${page * 10 + 1}`);
   let $ = cheerio.load(res.data);
+
   let categories = $("ul.list_news > li");
+
   if (categories.length > 0) {
+    let item = {};
     for (let i = 0; i < categories.length; i++) {
       const press = $(categories[i])
         .find("div.news_info > div.info_group > a.info.press")
         .text();
-      console.log("press: ", press);
+      item["press"] = press;
       const title = $(categories[i]).find("a.news_tit")[0]["attribs"]["title"];
-      console.log(title);
+      item["news_tit"] = title;
       const news_link = $(categories[i]).find("a.news_tit")[0]["attribs"][
         "href"
       ];
-      console.log("news_link: ", news_link);
+      item["news_link"] = news_link;
       if (
         $(categories[i]).find(
           "div > div > div.news_info > div.info_group > a:nth-child(3)"
@@ -32,31 +33,34 @@ const crawlerListArticles = async (keyword, page) => {
         const navers_link = $(categories[i]).find(
           "div > div > div.news_info > div.info_group > a:nth-child(3)"
         )[0]["attribs"]["href"];
-        console.log("navers_link: ", navers_link);
-        await crawlerPostDetail(navers_link);
+        item["navers_link"] = navers_link;
+        const data = await crawlerNewsDetail(navers_link);
+        console.log({...item, ...data})
       }
     }
   }
+  let pages = $("#main_pack > div.api_sc_page_wrap > div > div > a");
+  if (pages) {
+    const lastPage = parseInt($(pages[pages.length - 1]).text());
+    if (page === lastPage) {
+      return false;
+    }
+  }
+  return true;
   // let list = $(categories).find("li");
 };
 
-const crawlerPostDetail = async (naverLink) => {
-  await crawlerNewsDetail(naverLink)
-  // let res = await axios.get(naverLink);
-  // fs.writeFileSync("test.html", res.data)
-  // let $ = cheerio.load(res.data);
-  // let datetime = $(
-  //   "#main_content > div.article_header > div.article_info > div"
-  // );
-  // if (datetime.length === 0) {
-  //   console.log(res.data);
-  // } else {
-  //   console.log(utf8.encode($($(datetime[0]).find("span")[0]).html()))
-  //   const created_at = textToData($($(datetime[0]).find("span")[0]).text());
-  //   console.log("Created_at: ", created_at);
-  //   const last_update = textToData($($(datetime[0]).find("span")[1]).text());
-  //   console.log("last_update: ", last_update);
-  // }
+const crawlerPostDetail = async () => {
+  let page = 0;
+  while (true) {
+    const data = await crawlerListArticles(
+      "신데렐라 드레스 입",
+      page
+    );
+    if (!data) {
+      break;
+    }
+    page++;
+  }
 };
-
-crawlerListArticles("출", 1);
+crawlerPostDetail()
