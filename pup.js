@@ -58,7 +58,7 @@ exports.crawlerNewsDetail = async (url) => {
       data.created_at = items[0].innerText;
       data.created_at = textToDate(data.created_at);
       if (items[1]) {
-        data.last_updated = textToData(items[1].innerText);
+        data.last_updated = textToDate(items[1].innerText);
       }
     } else {
       items = document.querySelectorAll(
