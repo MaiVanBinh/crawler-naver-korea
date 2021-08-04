@@ -1,21 +1,20 @@
-articles
-	ID
-	press 
-	news_title 
-	naver_link
-	news_link
-	
-	created_at
-	last_update
-	react
-		like
-		support
-		cỏngatulations
-		forward
-		suprised
-		sad
-	comments
-	share
+press: 'MBC연예',
+  news_tit: `'이지훈♥' 아야네, "결혼식 때 신데렐라 드레스 입고 왈츠 출것" (동상이몽2)`,
+  news_link: 'http://enews.imbc.com/News/RetrieveNewsInfo/320480',
+  navers_link: 'https://news.naver.com/main/read.naver?mode=LSD&mid=sec&sid1=106&oid=408&aid=0000128728',
+  reacts: '9',
+  created_at: '2021-07-20T12:11',
+  comments_link: 0,
+  
+  like: 3,
+  warm: 0,
+  sad: 0,
+  angry: 0,
+  want: 0,
+  good: 3,
+  congrats: 0,
+  expect: 0,
+  surprise: 6
 comments
 	ID
 	URL

@@ -1,13 +1,14 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
-const fs = require("fs");
-const utf8 = require("utf8");
 const { crawlerNewsDetail } = require("./pup");
+const Articles = require("./models/articles");
 
-const crawlerListArticles = async (keyword, page) => {
-  const res = await axios.get(`https://search.naver.com/search.naver?query=${encodeURI(
-    keyword
-  )}&where=news&ie=utf8&sm=nws_hty&start=${page * 10 + 1}`);
+const crawlerListArticlesByPage = async (keyword, page) => {
+  const res = await axios.get(
+    `https://search.naver.com/search.naver?query=${encodeURI(
+      keyword
+    )}&where=news&ie=utf8&sm=nws_hty&start=${page * 10 + 1}`
+  );
   let $ = cheerio.load(res.data);
 
   let categories = $("ul.list_news > li");
@@ -34,8 +35,23 @@ const crawlerListArticles = async (keyword, page) => {
           "div > div > div.news_info > div.info_group > a:nth-child(3)"
         )[0]["attribs"]["href"];
         item["navers_link"] = navers_link;
+        const originIds = navers_link.split("?")[1].split("&");
+        let origin_id = "";
+        for (let i1 = 0; i1 < originIds.length; i1++) {
+          const arrK = originIds[i1].split("=");
+          if (arrK[0] === "oid") {
+            origin_id += "news" + arrK[1];
+          }
+          if (arrK[0] === "aid") {
+            origin_id += "," + arrK[1];
+          }
+        }
+
         const data = await crawlerNewsDetail(navers_link);
-        console.log({...item, ...data})
+        console.log({ ...item, ...data, origin_id: origin_id });
+        const articles = new Articles({ ...item, ...data, origin_id: origin_id});
+        await articles.save();
+        
       }
     }
   }
@@ -47,20 +63,15 @@ const crawlerListArticles = async (keyword, page) => {
     }
   }
   return true;
-  // let list = $(categories).find("li");
 };
 
-const crawlerPostDetail = async () => {
+exports.crawlerArticles = async (keyword) => {
   let page = 0;
   while (true) {
-    const data = await crawlerListArticles(
-      "신데렐라 드레스 입",
-      page
-    );
+    const data = await crawlerListArticlesByPage(keyword, page);
     if (!data) {
       break;
     }
     page++;
   }
 };
-crawlerPostDetail()

@@ -14,7 +14,7 @@ exports.crawlerNewsDetail = async (url) => {
   await sleep(5);
   // while (totalHeight < scrollHeight) {
   const data = await page.evaluate(() => {
-    const textToDate = (text) => {
+    function textToDate(text) {
       if (!text) return;
       let dateTime = "";
       const arr = text.split(" ");
@@ -23,20 +23,25 @@ exports.crawlerNewsDetail = async (url) => {
         .split(":")
         .map((e, i) => {
           if (arr[1] == "오후" && i === 0) {
+            if (parseInt(e) === 12) {
+              return e;
+            }
             return parseInt(e) + 12;
+          } else {
+            if (e.length === 1) {
+              e = "0" + e;
+            }
+            return e;
           }
-          return e;
         })
         .join(":");
       dateTime = date + "T" + time;
       return dateTime;
-    };
+    }
 
     const data = {};
     // get Reacts
-    let items = document.querySelectorAll(
-      "span.u_likeit_text._count.num"
-    );
+    let items = document.querySelectorAll("span.u_likeit_text._count.num");
     if (items.length > 0) {
       data.reacts = items[0].innerText;
     }
@@ -70,14 +75,11 @@ exports.crawlerNewsDetail = async (url) => {
     }
 
     // get comment link
-    items = document.querySelectorAll(
-      "#articleTitleCommentCount"
-    );
+    items = document.querySelectorAll("#articleTitleCommentCount");
     data.comments_link = 0;
     if (items.length > 0) {
-      data.comments_link = items[0].getAttribute('href');
+      data.comments_link = items[0].getAttribute("href");
     }
-
 
     // get like
     items = document.querySelectorAll(
@@ -186,7 +188,7 @@ exports.crawlerNewsDetail = async (url) => {
     }
     return data;
   });
-  
+
   browser.close();
   return data;
 };
