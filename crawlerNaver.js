@@ -12,4 +12,4 @@ mongoose
   })
   .catch((e) => console.log(e));
 
-crawlerArticles("신데렐라 드레스 입");
+crawlerArticles("윤석열 27.5%·이재명 25.5%…尹 하락세 둔화");

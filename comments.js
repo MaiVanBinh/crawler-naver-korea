@@ -4,91 +4,120 @@ const sleep = (ms) => {
 };
 const Comments = require("./models/comments");
 
-const crawlerNewsDetail = async (
-  url = "https://news.naver.com/main/ranking/read.naver?mode=LSD&mid=shm&sid1=001&oid=022&aid=0003606849&rankingType=RANKING&m_view=1&includeAllCount=true&m_url=%2Fcomment%2Fall.nhn%3FserviceId%3Dnews%26gno%3Dnews022%2C0003606849%26sort%3Dlikability"
+const crawlerComments = async (
+  url = "https://news.naver.com/main/ranking/read.naver?mode=LSD&mid=shm&sid1=001&oid=025&aid=0003127620&rankingType=RANKING&m_view=1&includeAllCount=true&m_url=%2Fcomment%2Fall.nhn%3FserviceId%3Dnews%26gno%3Dnews025%2C0003127620%26sort%3Dlikability",
+  article_origin_id
 ) => {
   const browser = await puppeteer.launch({
-    headless: false,
+    // headless: false,
   });
   const page = await browser.newPage();
   await page.goto(url);
   await sleep(5);
   // while (totalHeight < scrollHeight) {
   const data = await page.evaluate(async () => {
+    // sleep
     function sleep(ms) {
       return new Promise((resolve) => setTimeout(resolve, ms * 1000));
     }
+
+    // get comments data
+    function getCommentData(comment) {
+      let item = {};
+      item.user_id = comment.querySelector("span.u_cbox_nick")
+        ? comment.querySelector("span.u_cbox_nick").innerText
+        : "";
+      item.reply = comment.querySelector("span.u_cbox_reply_cnt")
+        ? comment.querySelector("span.u_cbox_reply_cnt").innerText
+        : 0;
+      item.created_at = comment.querySelector("span.u_cbox_date")
+        ? comment.querySelector("span.u_cbox_date").getAttribute("data-value")
+        : null;
+      item.like = comment.querySelector("em.u_cbox_cnt_recomm")
+        ? comment.querySelector("em.u_cbox_cnt_recomm").innerText
+        : 0;
+      item.dislike = comment.querySelector("em.u_cbox_cnt_unrecomm")
+        ? comment.querySelector("em.u_cbox_cnt_unrecomm").innerText
+        : 0;
+      item.content = comment.querySelector("span.u_cbox_contents")
+        ? comment.querySelector("span.u_cbox_contents").innerText
+        : 0;
+      item.reply = comment.querySelector("span.u_cbox_reply_cnt")
+        ? comment.querySelector("span.u_cbox_reply_cnt").innerText
+        : 0;
+      const arrIDs = comment.parentNode.parentNode
+        .getAttribute("data-info")
+        .split(",");
+      item.parent_comment_no = arrIDs[arrIDs.length - 1].split(":")[1];
+      item.origin_id = arrIDs[0].split(":")[1];
+      item.article_origin_id = arrIDs[arrIDs.length - 3].split(":")[1];
+      return item;
+    }
+
+    // call api get create comments
     await sleep(3);
-    let el = document.querySelectorAll("div.u_cbox_paginate");
-    while (el.length > 0 && el[0].style.display !== "none") {
-      let items = document.querySelectorAll("a.u_cbox_btn_more");
-      items[0].click();
-      await sleep(3);
-      el = document.querySelectorAll("div.u_cbox_paginate");
-    }
+    // document.querySelector("#cbox_module_wai_u_cbox_sort_option_tab1").click();
+    // await sleep(3);
 
-    items = document.querySelectorAll("a.u_cbox_btn_reply");
-    for (let i = 0; i < items.length; i++) {
-      const repl = items[i].querySelector("span.u_cbox_reply_cnt");
-      if (!repl || repl.innerText === "0") {
-        continue;
-      }
-      items[i].click();
-      await sleep(3);
-    }
-    await sleep(10);
-    el = document.querySelectorAll("div.u_cbox_paginate");
+    let data = [];
 
-    while (el.length > 0) {
-      let check = 0;
-      for (let i = 0; i < el.length; i++) {
-        if (el[i].style.display !== "none") {
-          let items = el[i].querySelectorAll("a.u_cbox_btn_more");
-          items[0].click();
-          console.log("click");
+    let el = document.querySelector("li.u_cbox_comment");
+    let isLoopParent = true;
+    while (isLoopParent) {
+      if (el) {
+        const seeReply = el.querySelector("a.u_cbox_btn_reply");
+        const repl = seeReply
+          ? seeReply.querySelector("span.u_cbox_reply_cnt")
+          : false;
+        if (repl && repl.innerText !== "0") {
+          seeReply.click();
           await sleep(3);
+          el = document.querySelector("li.u_cbox_comment");
+          let page = el.querySelector("div.u_cbox_paginate");
+          let isLoop = true;
+          while (isLoop) {
+            if (page && page.style.display !== "none") {
+              page.querySelector("a.u_cbox_btn_more").click();
+              await sleep(3);
+            }
+            el = document.querySelector("li.u_cbox_comment");
+            page =
+              el.querySelectorAll("div.u_cbox_paginate") &&
+              el.querySelectorAll("div.u_cbox_paginate").length >= 2
+                ? el.querySelectorAll("div.u_cbox_paginate")[1]
+                : false;
+            if (page && page.style.display === "none") {
+              isLoop = false;
+            }
+          }
+          const listComments = el.querySelectorAll("div.u_cbox_area");
+          for (let i = 0; i < listComments.length; i++) {
+            const comment = getCommentData(listComments[i]);
+            data.push(comment);
+          }
         } else {
-          check += 1;
+          const commentC = el.querySelector("div.u_cbox_area");
+          const comment = getCommentData(commentC);
+          data.push(comment);
         }
       }
-      if (check === el.length) {
-        break;
+      el.remove();
+      el = document.querySelector("li.u_cbox_comment");
+      if (!el) {
+        el = document.querySelector("div.u_cbox_paginate");
+        if (el && el.style.display === "none") {
+          isLoopParent = false;
+        }
+        el.querySelector("a.u_cbox_btn_more").click();
+        await sleep(3);
+        el = document.querySelector("li.u_cbox_comment");
       }
-      el = document.querySelectorAll("div.u_cbox_paginate");
-    }
-
-    const data = [];
-
-    items = document.querySelectorAll("div.u_cbox_area");
-    console.log(items.length);
-    for (let i = 0; i < items.length; i++) {
-      let item = {};
-      item.user_id = items[i].querySelector("span.u_cbox_nick")
-        ? items[i].querySelector("span.u_cbox_nick").innerText
-        : "";
-      item.reply = items[i].querySelector("span.u_cbox_reply_cnt")
-        ? items[i].querySelector("span.u_cbox_reply_cnt").innerText
-        : 0;
-      // item.date = items[i].querySelector("span.u_cbox_date")
-      //   ? items[i].querySelector("span.u_cbox_date").innerText
-      //   : "";
-      item.like = items[i].querySelector("em.u_cbox_cnt_recomm")
-        ? items[i].querySelector("em.u_cbox_cnt_recomm").innerText
-        : 0;
-      item.dislike = items[i].querySelector("em.u_cbox_cnt_unrecomm")
-        ? items[i].querySelector("em.u_cbox_cnt_unrecomm").innerText
-        : 0;
-
-      data.push(item);
     }
     return data;
   });
-  for (let i = 0; i < data.length; i++) {
-    console.log(data[i]);
-    const comment = new Comments({ ...data[i] });
-    await comment.save();
-  }
-  data.forEach(async (e) => {});
+  console.log(data.length);
+  console.log("done");
   browser.close();
 };
-crawlerNewsDetail();
+
+crawlerComments();

@@ -188,7 +188,6 @@ exports.crawlerNewsDetail = async (url) => {
     }
     return data;
   });
-
   browser.close();
   return data;
 };

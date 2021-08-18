@@ -29,7 +29,7 @@ const commentsSchema = new Schema({
     type: Number,
   },
   article_origin_id: {
-    type: Number,
+    type: String,
   },
 });
 

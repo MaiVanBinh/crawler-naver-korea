@@ -16,11 +16,17 @@ const articlesSchema = new Schema({
   navers_link: {
     type: String,
   },
+  comments_link: {
+    type: String,
+  },
   created_at: {
     type: Date,
   },
   last_update: {
     type: Date,
+  },
+  comments:{
+    type: Number,
   },
   react: {
     type: Number,
@@ -58,6 +64,7 @@ const articlesSchema = new Schema({
   cheer: {
     type: Number,
   },
+  
 });
 
 module.exports = mongoose.model("articles", articlesSchema);
